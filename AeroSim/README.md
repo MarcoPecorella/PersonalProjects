@@ -29,10 +29,61 @@ This animated view is used to validate the radar sweep and detection logic imple
 ## 🧱 System Architecture
 
 ```mermaid
-graph TD
-    A[Angular Frontend (CesiumJS)] -- REST + WebSocket --> BFF[Go Backend-for-Frontend]
-    BFF -- RabbitMQ Messages --> Cpp[TrackLookup Radar Engine (C++)]
-    BFF -- RabbitMQ --> Other[Simulation Services]
+graph TB
+    %% Client Layer
+    Frontend[AeroSim Frontend<br/>Web Application]
+    
+    %% BFF Layer
+    AerosimBFF[AeroSim BFF<br/>Frontend Service Layer]
+    
+    %% API Layer
+    APIGateway[API Gateway<br/>Service Orchestrator]
+    
+    %% Message Broker
+    RabbitMQ[RabbitMQ<br/>Message Broker]
+    
+    %% Microservices
+    TrackService[Track Lookup Service]
+    SimService[Simulation Service]
+    
+    %% Standalone Service
+    GeoService[GeoServer<br/>Geographic Data]
+    
+    %% Frontend to BFF
+    Frontend ---|REST API| AerosimBFF
+    Frontend -.-|WebSocket| AerosimBFF
+    
+    %% Direct GeoServer Connection
+    Frontend -.-|WebSocket| GeoService
+    
+    %% BFF to API Gateway
+    AerosimBFF ---|HTTP/REST| APIGateway
+    
+    %% API Gateway to Message Broker
+    APIGateway ---|Commands & Queries| RabbitMQ
+    
+    %% Services to Message Broker
+    RabbitMQ ---|Messages| TrackService
+    RabbitMQ ---|Messages| SimService
+    
+    %% Service Event Communication
+    TrackService -.->|Events| RabbitMQ
+    SimService -.->|Events| RabbitMQ
+    
+    %% Styling
+    classDef clientLayer fill:#2196F3,stroke:#1976D2,stroke-width:3px,color:#ffffff
+    classDef bffLayer fill:#E91E63,stroke:#C2185B,stroke-width:3px,color:#ffffff
+    classDef apiLayer fill:#9C27B0,stroke:#7B1FA2,stroke-width:3px,color:#ffffff
+    classDef brokerLayer fill:#FF9800,stroke:#F57C00,stroke-width:3px,color:#ffffff
+    classDef serviceLayer fill:#4CAF50,stroke:#388E3C,stroke-width:3px,color:#ffffff
+    classDef standaloneLayer fill:#607D8B,stroke:#455A64,stroke-width:3px,color:#ffffff
+    
+    class Frontend clientLayer
+    class AerosimBFF bffLayer
+    class APIGateway apiLayer
+    class RabbitMQ brokerLayer
+    class TrackService,SimService serviceLayer
+    class GeoService standaloneLayer
 ```
 
 The architecture ensures full separation between visualization (frontend), orchestration (Go BFF), and computation (C++ simulation engine).
@@ -123,8 +174,8 @@ AeroSim was created to:
 | CesiumJS Scenario View    | ![AeroSim](images/2.png)                             |
 | CesiumJS Scenario View    | ![AeroSim](images/3.png)                             |
 | CesiumJS Scenario View    | ![AeroSim](images/4.png)                             |
-| Change Modality to Drones | ![AeroSim](images/5.png)                             |
-| Change Modality to Planes | ![AeroSim](images/6.png)                             |
+| Change Modality to Drones | ![AeroSim](images/6.png)                             |
+| Change Modality to Helicopter | ![AeroSim](images/7.png)                             |
 
 ---
 
